@@ -218,9 +218,7 @@ We now use automatically from the date and the setLocale() method. If you use ->
 Copyright (c) 2016-2022 Benjamin Hall, ben@conobe.co.uk 
 https://conobe.co.uk
 
+Copyright (c) 2025 Simon Stockhause simon.stockhause@dampfzeit.com
+https://dampfzeit.com
+
 Licensed under the MIT license
-
-# Donate?
-If you find this project helpful or useful in any way, please consider getting me a cup of coffee - It's really appreciated :)
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://paypal.me/benhall14)
