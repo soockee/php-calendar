@@ -3,12 +3,26 @@ A PHP class that makes generating calendars as easy as possible.
 
 You can use the addEvent() or addEvents() methods to mark events on the generated calendar.
 
-This is fully compatible with *PHP 5 through to **PHP 8.1+***
+This is fully compatible with *PHP 5 through tzo **PHP 8.1+***
+
+# Fork
+This is a fork of [benhall14/php-calendar](https://github.com/benhall14/php-calendar)
+
+The additional features and modifications described in the next sections.
+
+## Multi-Cell Event Support
+
+This implementation makes events span over multiple rows, if an event start and end date exceeds a single cells interval. 
+
+## Dynamic Week View
+
+The weekview is display based on current days date instead of fixed monday or sunday.
+
 
 # Installation via Composer
 You can now install this class via composer.
 
-	$ composer require benhall14/php-calendar
+	$ composer require soockee/php-calendar
 	
 **Remember** to add the composer autoloader before using the class and use the correct namespace.
 
