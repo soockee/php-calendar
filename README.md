@@ -211,7 +211,6 @@ We now use automatically from the date and the setLocale() method. If you use ->
 -   [GeoSot](https://github.com/GeoSot)
 
 
-
 # Requirements
 
 **Carbon**
