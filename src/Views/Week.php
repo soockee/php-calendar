@@ -127,79 +127,93 @@ class Week extends View
     }
 
 
+    protected function collectEvents(CarbonPeriod $carbonPeriod): array
+    {
+        $cells = [];
+        $times = $this->getTimes();  // e.g. ["10:00", "11:00", …]
+        $days  = $carbonPeriod->toArray();
+        $interval = $this->options['timeInterval']; // e.g. 60 minutes
+
+        foreach ($days as $day) {
+            $dayKey = $day->format('Y-m-d');
+            $cells[$dayKey] = [];
+
+            foreach ($times as $rowIndex => $time) {
+                // Set the current timeslot datetime
+                $cellDateTime = $day->setTimeFrom($time);
+
+                // Find events that start exactly within this timeslot
+                $events = $this->findEvents(
+                    $cellDateTime,
+                    $cellDateTime->clone()->addMinutes($interval - 1)
+                );
+
+                if (!empty($events)) {
+                    // Take the first event only
+                    $event = reset($events);
+                    $minutes = $event->end->diffInMinutes($cellDateTime);
+                    $rowspan = max(intval(ceil($minutes / $interval)), 1);
+
+                    $cells[$dayKey][$rowIndex] = [
+                        'type'    => 'event',
+                        'rowspan' => $rowspan,
+                        'event'   => $event,
+                    ];
+                } else {
+                    $cells[$dayKey][$rowIndex] = ['type' => 'empty'];
+                }
+            }
+        }
+        return $cells;
+    }
+
+
     protected function renderBlocks(CarbonPeriod $carbonPeriod): string
     {
         $today   = Carbon::now();
         $content = '';
-        $times   = $this->getTimes();              // e.g. ["10:00", "11:00", …]
-        $days    = $carbonPeriod->toArray();         // Each Carbon day for the week
+        $times   = $this->getTimes();  // e.g. ["10:00", "11:00", …]
+        $days    = $carbonPeriod->toArray();
 
-        // $occupied will keep track of rows already occupied by a multi-timeslot event for each day.
-        // The structure is: [ 'YYYY-MM-DD' => [rowIndex, rowIndex, ...], ... ]
+        // Pre-collect events
+        $cells = $this->collectEvents($carbonPeriod);
+
+        // Tracks which timeslots are already rendered due to a rowspan.
         $occupied = [];
 
-        // Loop over each timeslot (each row)
         foreach ($times as $rowIndex => $time) {
             $content .= '<tr>';
 
-            // Render the first cell with the time label
+            // Render the time label cell
             $start_time = $time;
             $end_time   = date('H:i', strtotime($time . ' + ' . $this->options['timeInterval'] . ' minutes'));
             $content   .= '<td class="cal-weekview-time-th"><div>' . $start_time . ' - ' . $end_time . '</div></td>';
 
-            // Loop over each day (each column)
-            foreach ($days as $carbon) {
-                if ($this->config->dayShouldBeHidden($carbon)) {
-                    continue;
-                }
+            // Render each day's column for this timeslot
+            foreach ($days as $day) {
+                $dayKey = $day->format('Y-m-d');
 
-                // Use a key based on the day’s date to track occupied rows
-                $dayKey = $carbon->format('Y-m-d');
-
-                // If this row (timeslot) is already occupied for this day, skip rendering a <td>
+                // Skip if this timeslot is covered by a previous event's rowspan
                 if (isset($occupied[$dayKey]) && in_array($rowIndex, $occupied[$dayKey])) {
                     continue;
                 }
 
-                // Set the current cell’s datetime (assumes event boundaries align with timeslot boundaries)
-                $datetime = $carbon->setTimeFrom($time);
+                $cell = $cells[$dayKey][$rowIndex] ?? ['type' => 'empty'];
+                $today_class = $day->isSameDay($today) ? ' today' : '';
 
-                // Find events that start in this timeslot.
-                // (Adjust this logic if you need to detect events that “started” earlier but span into this slot.)
-                $events = $this->findEvents(
-                    $datetime,
-                    $datetime->clone()->addMinutes($this->options['timeInterval'])
-                );
-
-                // If there is at least one event starting now, pick the first one
-                if (!empty($events)) {
-                    $event = reset($events);
-
-                    // Calculate how many minutes the event lasts from the current cell’s datetime.
-                    $minutes = $event->end->diffInMinutes($datetime);
-
-                    // Determine the number of timeslots (rows) this event spans.
-                    $interval = $this->options['timeInterval']; // e.g. 60 minutes
-                    $rowspan  = intval(ceil($minutes / $interval));
-
-                    // Mark subsequent rows for this day as occupied by this event
-                    for ($i = $rowIndex + 1; $i < $rowIndex + $rowspan; $i++) {
+                if ($cell['type'] === 'event') {
+                    // Mark subsequent timeslots as occupied by this event
+                    for ($i = $rowIndex + 1; $i < $rowIndex + $cell['rowspan']; $i++) {
                         $occupied[$dayKey][] = $i;
                     }
 
-                    // Optionally, add a CSS class for the current hour
-                    $today_class = $carbon->isSameHour($today) ? ' today' : '';
-
-                    // Render the cell with the event and the rowspan attribute
-                    $content .= '<td class="cal-weekview-time ' . $today_class . '" rowspan="' . $rowspan . '">';
-                    $content .= $this->renderEvent($event, $carbon, $rowspan);
+                    // Render the event cell with appropriate rowspan
+                    $content .= '<td class="cal-weekview-time ' . $today_class . '" rowspan="' . $cell['rowspan'] . '">';
+                    $content .= $this->renderEvent($cell['event'], $day, $cell['rowspan']);
                     $content .= '</td>';
                 } else {
-                    // No event for this cell; render an empty cell.
-                    $today_class = $carbon->isSameHour($today) ? ' today' : '';
-                    $content .= '<td class="cal-weekview-time ' . $today_class . '">';
-                    $content .= '<div></div>';
-                    $content .= '</td>';
+                    // Render an empty cell
+                    $content .= '<td class="cal-weekview-time ' . $today_class . '"><div></div></td>';
                 }
             }
             $content .= '</tr>';
@@ -207,6 +221,7 @@ class Week extends View
 
         return $content;
     }
+
 
     /**
      * Renders an event. If the event spans multiple timeslots,
@@ -218,7 +233,7 @@ class Week extends View
 
         // Render the event summary only once.
         if (in_array($event, $this->usedEvents)) {
-            $eventSummary = '&nbsp;';
+            return '';
         } else {
             $eventSummary = $event->summary;
             $this->usedEvents[] = $event;

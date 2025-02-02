@@ -39,9 +39,9 @@ class Calendar
 
     /**
      * Set the locale for the calendar.
-     * 
+     *
      * @param string $locale
-     * 
+     *
      * @return $this
      */
     public function setLocale(string $locale): static
@@ -130,8 +130,6 @@ class Calendar
      */
     public function useDynamicStartingDate(): static
     {
-        do_action( 'qm/debug',  Carbon::now()->dayOfWeek );
-
         $this->config->starting_day = Carbon::now()->dayOfWeek;
 
         return $this;
