@@ -126,6 +126,18 @@ class Calendar
     }
 
     /**
+     * Changes the weekly start date to Monday.
+     */
+    public function useDynamicStartingDate(): static
+    {
+        do_action( 'qm/debug',  Carbon::now()->dayOfWeek );
+
+        $this->config->starting_day = Carbon::now()->dayOfWeek;
+
+        return $this;
+    }
+
+    /**
      * The events array.
      *
      * @var array<Event>
