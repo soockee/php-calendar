@@ -2,7 +2,7 @@
 
 require('../vendor/autoload.php');
 
-use benhall14\phpCalendar\Calendar;
+use soockee\phpCalendar\Calendar;
 
 $calendar = new Calendar();
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace benhall14\phpCalendar\Views;
+namespace soockee\phpCalendar\Views;
 
-use benhall14\phpCalendar\Event;
+use soockee\phpCalendar\Event;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Carbon\CarbonInterval;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace benhall14\phpCalendar;
+namespace soockee\phpCalendar;
 
 use BadMethodCallException;
-use benhall14\phpCalendar\Views\Month;
-use benhall14\phpCalendar\Views\Week;
+use soockee\phpCalendar\Views\Month;
+use soockee\phpCalendar\Views\Week;
 use Carbon\Carbon;
 use DateTimeInterface;
 
