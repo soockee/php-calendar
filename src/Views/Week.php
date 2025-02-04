@@ -115,9 +115,9 @@ class Week extends View
             }
 
             $headerString .= '<th class="cal-th cal-th-' . strtolower($carbon->englishDayOfWeek) . '">';
-            $headerString .= '<div class="cal-weekview-dow">' . ucfirst($carbon->localeDayOfWeek) . '</div>';
+            $headerString .= '<div class="cal-weekview-dow">' . ucfirst($carbon->dayName) . '</div>';
             $headerString .= '<div class="cal-weekview-day">' . $carbon->day . '</div>';
-            $headerString .= '<div class="cal-weekview-month">' . ucfirst($carbon->localeMonth) . '</div>';
+            $headerString .= '<div class="cal-weekview-month">' . ucfirst($carbon->monthName) . '</div>';
             $headerString .= '</th>';
         }
 
